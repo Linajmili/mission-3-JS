@@ -1,76 +1,104 @@
-const inputBox = document.getElementById("input-box");
-const listContainer = document.getElementById("list-container");
+let inputBox = document.getElementById("input-box");
+let listContainer = document.getElementById("list-container");
 
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+// Array to store tasks
+let arrayOfTasks = [];
 
+// Load tasks from localStorage if any
+if (localStorage.getItem("tasks")) {
+  arrayOfTasks = JSON.parse(localStorage.getItem("tasks"));
+}
+getDataFromLocalStorage();
+
+// Add Task Function
 function addTask() {
-    if (inputBox.value === '') {
-        alert("Please write something!");
-    } else {
-        let task = {
-            text: inputBox.value,
-            completed: false
-        };
+  if (inputBox.value.trim() !== "") {
+    addTaskToArray(inputBox.value); // Add Task to Array
+    inputBox.value = ""; // Clear input field
+  }
+}
 
-        tasks.push(task); 
-        saveTasks(); 
-        renderTasks(); 
-        inputBox.value = ''; 
+// Event Listener for Task Completion and Deletion
+listContainer.addEventListener("click", function (e) {
+  // Delete Button
+  if (e.target.classList.contains("remove-btn")) {
+    const taskId = e.target.parentElement.getAttribute("data-id");
+    deleteTaskWith(taskId);
+    e.target.parentElement.remove();
+  }
+  // Check Button for Task Completion
+  if (e.target.classList.contains("check-btn")) {
+    const taskId = e.target.parentElement.getAttribute("data-id");
+    toggleStatusTaskWith(taskId);
+    e.target.parentElement.classList.toggle("completed");
+    e.target.classList.toggle("checked");
+  }
+});
+
+function addTaskToArray(taskText) {
+  const task = {
+    id: Date.now(),
+    title: taskText,
+    completed: false,
+  };
+  arrayOfTasks.push(task);
+  addElementsToPageFrom(arrayOfTasks);
+  addDataToLocalStorageFrom(arrayOfTasks);
+}
+
+function addElementsToPageFrom(arrayOfTasks) {
+  listContainer.innerHTML = "";
+  arrayOfTasks.forEach((task) => {
+    let li = document.createElement("li");
+    li.className = "task";
+    li.setAttribute("data-id", task.id);
+    if (task.completed) {
+      li.classList.add("completed");
     }
+
+    let checkBtn = document.createElement("span");
+    checkBtn.className = "check-btn";
+    if (task.completed) {
+      checkBtn.classList.add("checked");
+    }
+
+    let taskTitle = document.createElement("span");
+    taskTitle.textContent = task.title;
+
+    let removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "Delete";
+
+    li.appendChild(checkBtn);
+    li.appendChild(taskTitle);
+    li.appendChild(removeBtn);
+
+    listContainer.appendChild(li);
+  });
 }
 
-function renderTasks() {
-    listContainer.innerHTML = ''; 
-
-    tasks.forEach((task, index) => {
-        let li = document.createElement("li");
-
-        // Create the circular check button
-        let checkBtn = document.createElement("button");
-        checkBtn.innerHTML = ""; 
-        checkBtn.classList.add("check-btn");
-
-        // Add 'completed' class if the task is marked as completed
-        if (task.completed) {
-            li.classList.add("completed");
-            checkBtn.classList.add("checked");
-        }
-
-        // Event listener to mark the task as completed
-        checkBtn.addEventListener("click", function () {
-            tasks[index].completed = !tasks[index].completed; 
-            saveTasks(); // Save to localStorage
-            renderTasks(); 
-        });
-
-        
-        let taskText = document.createElement("span");
-        taskText.innerHTML = task.text;
-
-        // Create the delete button
-        let deleteBtn = document.createElement("button");
-        deleteBtn.innerHTML = "Delete";
-        deleteBtn.classList.add("remove-btn");
-
-        
-        deleteBtn.addEventListener("click", function () {
-            tasks.splice(index, 1); 
-            saveTasks(); 
-            renderTasks(); 
-        });
-
-        
-        li.appendChild(checkBtn);
-        li.appendChild(taskText);
-        li.appendChild(deleteBtn);
-
-        listContainer.appendChild(li);
-    });
+function addDataToLocalStorageFrom(arrayOfTasks) {
+  localStorage.setItem("tasks", JSON.stringify(arrayOfTasks));
 }
 
-// Function to save tasks to localStorage
-function saveTasks() {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+function getDataFromLocalStorage() {
+  let data = localStorage.getItem("tasks");
+  if (data) {
+    let tasks = JSON.parse(data);
+    addElementsToPageFrom(tasks);
+  }
 }
 
-renderTasks();
+function deleteTaskWith(taskId) {
+  arrayOfTasks = arrayOfTasks.filter((task) => task.id != taskId);
+  addDataToLocalStorageFrom(arrayOfTasks);
+}
+
+function toggleStatusTaskWith(taskId) {
+  arrayOfTasks.forEach((task) => {
+    if (task.id == taskId) {
+      task.completed = !task.completed;
+    }
+  });
+  addDataToLocalStorageFrom(arrayOfTasks);
+}
