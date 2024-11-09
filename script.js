@@ -69,10 +69,10 @@ function addElementsToPageFrom(arrayOfTasks) {
     removeBtn.className = "remove-btn";
     removeBtn.textContent = "Delete";
 
-    li.appendChild(checkBtn);
+     li.appendChild(checkBtn);
     li.appendChild(taskTitle);
     li.appendChild(removeBtn);
-
+    
     listContainer.appendChild(li);
   });
 }
